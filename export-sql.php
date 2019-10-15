@@ -3,8 +3,16 @@ chdir(dirname(__FILE__));
 include('include.php');
 include('config-db.php');
 
-$sql = new PDO('mysql:dbname=' . $dbconfig['name'] . ';host=' . $dbconfig['host'] . ';charset=utf8mb4', $dbconfig['username'], $dbconfig['password']);
-$sql->exec('SET CHARACTER SET utf8mb4');
+try
+{
+	$sql = new PDO('mysql:dbname=' . $dbconfig['name'] . ';host=' . $dbconfig['host'] . ';charset=utf8mb4', $dbconfig['username'], $dbconfig['password']);
+	$sql->exec('SET CHARACTER SET utf8mb4');
+}
+catch(Exception $e)
+{
+	printf("Failed to connect with MySQL server.\nError:\n\n%s\n", $e->getMessage());
+	exit(1);
+}
 
 $query = $sql->prepare('SELECT * FROM messages ORDER BY date DESC LIMIT 1');
 $query->execute();
@@ -15,8 +23,8 @@ if($last) {
   $last = 0;
 }
 
-$insert = $sql->prepare('INSERT INTO messages 
-  (`timestamp`, `date`, `time`, `from`, `from_name`, `to`, `to_name`, `message`, `num_emoji`, `num_attachments`) 
+$insert = $sql->prepare('INSERT INTO messages
+  (`timestamp`, `date`, `time`, `from`, `from_name`, `to`, `to_name`, `message`, `num_emoji`, `num_attachments`)
   VALUES(?,?,?,?,?,?,?,?,?,?)');
 
 $query = query_messages_since($db, $last);
@@ -24,7 +32,7 @@ $last_timestamp = 0;
 while($line = $query->fetch(PDO::FETCH_ASSOC)) {
 
   $attachment_query = $db->query('SELECT attachment.*
-    FROM attachment 
+    FROM attachment
     JOIN message_attachment_join ON message_attachment_join.attachment_id=attachment.ROWID
     WHERE message_attachment_join.message_id = ' . $line['ROWID']);
   $attachments = array();
