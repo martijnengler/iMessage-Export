@@ -65,7 +65,11 @@ while($line = $query->fetch(PDO::FETCH_ASSOC)) {
   $insert->bindValue(8, trim($line['text']));
   $insert->bindValue(9, $num_emoji);
   $insert->bindValue(10, count($attachments));
-  $insert->execute();
+  if(!$insert->execute())
+	{
+		printf("Failed to insert data.\nError:\n\n%s", $insert->errorInfo()[2]);
+		exit(2);
+	}
 
 }
 
